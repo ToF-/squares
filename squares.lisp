@@ -32,6 +32,12 @@
 (defun coord (x y)
   (cons x y))
 
+(defun round-coord (coord)
+  (cons (round (car coord)) (round (cdr coord))))
+
+(defun color (rgb)
+  (format t "ctx.strokeStyle=\"rgb(~A%,~A%,~A%)\";~%" (car rgb) (cadr rgb) (caddr rgb)))
+
 (defun squares (a b c d p limit)
   (let ((q (- 1 p)))
 
@@ -43,49 +49,33 @@
               (next-c (coord (+ (* p (x c)) (* q (x d))) (+ (* p (y c)) (* q (y d)))))
               (next-d (coord (+ (* p (x d)) (* q (x a))) (+ (* p (y d)) (* q (y a))))))
           (append (list
+                    'pencolor (list 0 0 0)
                     'moveto (round-coord a)
                     'lineto (round-coord b)
                     'lineto (round-coord c)
                     'lineto (round-coord d)
-                    'lineto (round-coord a))
+                    'lineto (round-coord a)
+                    )
                   (square-aux next-a next-b next-c next-d (1+ counter))))))
     (square-aux a b c d 0)))
 
-
-
-(defun round-coord (coord)
-  (cons (round (car coord)) (round (cdr coord))))
-
-(defun square (origin unit angle factor)
-  (defun square-aux (lower-left unit angle factor increment)
-  (if (< unit 100.0) 
-    nil
-    (let* ((perp (+ angle *half-pi*))
-           (next-angle (let ((candidate (+ angle increment)))
-                         (if (< candidate *pi*) candidate (- candidate *pi*))))
-
-           (lower-right (cons (+ (car lower-left) (* unit (cos angle))) 
-                              (+ (cdr lower-left) (* unit (sin angle)))))
-           (upper-right (cons (+ (car lower-right) (* unit (cos perp)))
-                              (+ (cdr lower-right) (* unit (sin perp)))))
-           (upper-left (cons (+ (car lower-left) (* unit (cos perp)))
-                             (+ (cdr lower-left) (* unit (sin perp)))))
-           (next-origin (cons (+ (car lower-left) (* (* unit factor) (cos angle)))
-                              (+ (cdr lower-left) (* (* unit factor) (sin angle))))))
-      (append (list
-                'moveto (round-coord lower-left)
-                'lineto (round-coord lower-right)
-                'lineto (round-coord upper-right)
-                'lineto (round-coord upper-left)
-                'lineto (round-coord lower-left))
-              (square-aux next-origin (* unit (- 1.0 factor)) next-angle factor increment)))))
-  (square-aux origin unit angle factor (atan factor)))
-
 (defun render-instructions (instructions)
   (cond ((null instructions) nil)
+        ((equal 'stroke (car instructions))
+         (progn
+           (format t "ctx.stroke();~%")
+           (render-instructions (cdr instructions))))
+        ((equal 'begin-path (car instructions))
+         (progn
+           (format t "ctx.beginPath();~%")
+           (render-instructions (cdr instructions))))
+        ((equal 'end-path (car instructions))
+         (progn
+           (format t "ctx.endPath();~%")
+           (render-instructions (cdr instructions))))
          ((equal 'moveto (car instructions))
           (progn
-            (format t "ctx.stroke();~%ctx.moveTo(~A, ~A);~%"
+            (format t "ctx.moveTo(~A, ~A);~%"
                     (car (cadr instructions))
                     (cdr (cadr instructions)))
             (render-instructions (cddr instructions))))
@@ -94,6 +84,10 @@
             (format t "ctx.lineTo(~A, ~A);~%"
                     (car (cadr instructions))
                     (cdr (cadr instructions)))
+            (render-instructions (cddr instructions))))
+         ((equal 'pencolor (car instructions))
+          (progn
+            (color (cadr instructions))
             (render-instructions (cddr instructions))))))
 
 (defun render (width height instructions)
@@ -103,18 +97,19 @@
     (format t "<canvas id=\"c\" width=\"~A\" height=\"~A\"</canvas>~%" width height)
     (format t "<script>~%")
     (format t "const ctx = c.getContext(\"2d\");~%")
-    (format t "ctx.beginPath();~%")
+    (format t "ctx.beginPath();")
     (render-instructions instructions)
-    (format t "ctx.stroke();~%")
+    (format t "ctx.stroke();")
+    (format t "ctx.endPath();")
     (format t "</script>~%")
     (format t "</body>~%")
     (format t "</html>~%")))
 
 (render 1400 700 
-        (append (squares (coord 0 0) (coord 350 0) (coord 350 350) (coord 0 350) 0.85 100)
-                (squares (coord 350 0) (coord 700 0) (coord 700 350) (coord 350 350) 0.15 100)
-                (squares (coord 0 350) (coord 350 350) (coord 350 700) (coord 0 700) 0.15 100)
-                (squares (coord 350 350) (coord 700 350) (coord 700 700) (coord 350 700) 0.85 100)
+        (append (squares (coord 0 0) (coord 350 0) (coord 350 350) (coord 0 350) 0.95 100)
+                (squares (coord 350 0) (coord 700 0) (coord 700 350) (coord 350 350) 0.05 100)
+                (squares (coord 0 350) (coord 350 350) (coord 350 700) (coord 0 700) 0.05 100)
+                (squares (coord 350 350) (coord 700 350) (coord 700 700) (coord 350 700) 0.95 100)
                 ))
 (sb-ext:quit)
 
