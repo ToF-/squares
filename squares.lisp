@@ -36,7 +36,7 @@
   (cons (round (car coord)) (round (cdr coord))))
 
 (defun color (rgb)
-  (format t "ctx.strokeStyle=\"rgb(~A%,~A%,~A%)\";~%" (car rgb) (cadr rgb) (caddr rgb)))
+  (format t "ctx.fillStyle=\"rgb(~A%,~A%,~A%)\";~%" (car rgb) (cadr rgb) (caddr rgb)))
 
 (defun squares (a b c d p limit)
   (let ((q (- 1 p)))
@@ -55,8 +55,8 @@
                     'lineto (round-coord c)
                     'lineto (round-coord d)
                     'lineto (round-coord a)
-                    'pencolor (list 20 (random 50) (random 100))
-                    'stroke
+                    'fillStyle (list 00 00 (- 50 (* (truncate counter 1.0) 1.0)))
+                    'fill
                     )
                   (square-aux next-a next-b next-c next-d (1+ counter))))))
     (square-aux a b c d 0)))
@@ -66,6 +66,10 @@
         ((equal 'stroke (car instructions))
          (progn
            (format t "ctx.stroke();~%")
+           (render-instructions (cdr instructions))))
+        ((equal 'fill (car instructions))
+         (progn
+           (format t "ctx.fill();~%")
            (render-instructions (cdr instructions))))
         ((equal 'begin-path (car instructions))
          (progn
@@ -87,7 +91,7 @@
                     (car (cadr instructions))
                     (cdr (cadr instructions)))
             (render-instructions (cddr instructions))))
-         ((equal 'pencolor (car instructions))
+         ((equal 'fillStyle (car instructions))
           (progn
             (color (cadr instructions))
             (render-instructions (cddr instructions))))))
@@ -100,8 +104,6 @@
     (format t "<script>~%")
     (format t "const ctx = document.getElementById(\"canvas\").getContext(\"2d\");~%")
     (render-instructions instructions)
-    (format t "ctx.stroke();")
-    (format t "ctx.endPath();")
     (format t "</script>~%")
     (format t "</body>~%")
     (format t "</html>~%")))
