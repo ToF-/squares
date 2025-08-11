@@ -49,12 +49,14 @@
               (next-c (coord (+ (* p (x c)) (* q (x d))) (+ (* p (y c)) (* q (y d)))))
               (next-d (coord (+ (* p (x d)) (* q (x a))) (+ (* p (y d)) (* q (y a))))))
           (append (list
-                    'pencolor (list 0 0 0)
+                    'begin-path
                     'moveto (round-coord a)
                     'lineto (round-coord b)
                     'lineto (round-coord c)
                     'lineto (round-coord d)
                     'lineto (round-coord a)
+                    'pencolor (list 20 (random 50) (random 100))
+                    'stroke
                     )
                   (square-aux next-a next-b next-c next-d (1+ counter))))))
     (square-aux a b c d 0)))
@@ -94,10 +96,9 @@
   (progn
     (format t "<!DOCTYPE html>~%")
     (format t "<html>~%")
-    (format t "<canvas id=\"c\" width=\"~A\" height=\"~A\"</canvas>~%" width height)
+    (format t "<canvas id=\"canvas\" width=\"~A\" height=\"~A\"</canvas>~%" width height)
     (format t "<script>~%")
-    (format t "const ctx = c.getContext(\"2d\");~%")
-    (format t "ctx.beginPath();")
+    (format t "const ctx = document.getElementById(\"canvas\").getContext(\"2d\");~%")
     (render-instructions instructions)
     (format t "ctx.stroke();")
     (format t "ctx.endPath();")
