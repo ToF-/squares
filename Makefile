@@ -7,5 +7,5 @@ pentagons: pentagons.lisp
 	open index.html
 
 polygons: polygons.lisp
-	sbcl --noinform --load polygons.lisp >index.html
+	sbcl --noinform --load polygons.lisp 5 >index.html
 	open index.html
