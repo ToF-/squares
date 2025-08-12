@@ -32,9 +32,9 @@
                 (+ (* p (y (car coords))) (* q (y (cadr coords)))))
          (next (cdr coords) fst)))))
 
-(defun polygon (coords)
+(defun polygon (coords counter limit)
   (let ((edge-size (distance (car coords) (cadr coords))))
-    (if (< edge-size 10.0)
+    (if (> counter limit)
       nil
       (let ((next-coords (next coords (car coords))))
         (append
@@ -43,9 +43,10 @@
           (append (loop for coord in (cdr coords)
                         collect (list 'line-to (round-coord coord))))
           (list (list 'line-to (round-coord (car coords))))
-          (list (list 'stroke))
-          (polygon next-coords))
-          ))))
+          (list (list 'fill-style (list 0 00 (* (- 100 (* (truncate counter 5.0) 5.0)) 0.60))))
+          (list (list 'fill))
+          (polygon next-coords (1+ counter) limit)
+          )))))
 
 (defun polygons (sides)
   (let ((vertice (loop for s from 0 to (- sides 1) collect s))
@@ -55,7 +56,10 @@
                   (coord
                     (+ (x origin) (* r (cos (* i alpha))))
                     (+ (y origin) (* r (sin (* i alpha))))))
-              vertice))))
+              vertice) 0 100)))
+
+(defun color (rgb)
+  (format t "ctx.fillStyle=\"rgb(~A%,~A%,~A%)\";~%"  (car rgb) (car (cdr rgb)) (car (cdr (cdr rgb)))))
 
 (defun render-instructions (instructions)
   (cond ((null instructions)
@@ -90,7 +94,7 @@
             (render-instructions (cdr instructions))))
          ((equal 'fill-style (caar instructions))
           (progn
-            (color (cdar instructions))
+            (color (cadr (car instructions)))
             (render-instructions (cdr instructions))))))
 
 (defun render (width height instructions)
