@@ -1,6 +1,6 @@
 (defparameter p (/ (* 2 pi) 5))
-(defparameter o (/ 350 2))
-(defparameter r (/ 350 2))
+(defparameter o (/ 700 2))
+(defparameter r (/ 700 2))
 
 ;
 ;

@@ -5,3 +5,7 @@ squares: squares.lisp
 pentagons: pentagons.lisp
 	sbcl --noinform --load pentagons.lisp >index.html
 	open index.html
+
+polygons: polygons.lisp
+	sbcl --noinform --load polygons.lisp >index.html
+	open index.html
